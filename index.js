@@ -1,9 +1,8 @@
 const express = require('express');
 const moment = require('moment');
-
+const axios = require('axios');
 
 const app = express();
-
 
 
 const PORT = 5000;
@@ -44,14 +43,37 @@ app.get('/availability', async (req, res) => {
     const reservations = reservationsResponse.data.reservations;
     const timetables = timetablesResponse.data.timetables;
 
-    // Check availability logic
+// Check availability logic
+  const isAvailable = reservations.every((reservation) => {
+  const reservationStart = moment(reservation.reservationStart);
+  const reservationEnd = moment(reservation.reservationEnd);
+  // Check if the given datetime falls within any existing reservation
+  if (requestedDatetime.isBetween(reservationStart, reservationEnd, null, '[]')) {
+    return false; // Not available
+  }
 
+  // Check if the given datetime falls within any opening hours
+  const timetable = timetables.find((timetable) => {
+    const opening = moment(timetable.opening);
+    const closing = moment(timetable.closing);
+    return requestedDatetime.isBetween(opening, closing, null, '[]');
+  });
+
+  if (!timetable) {
+    return false; // Not available
+  }
+
+  return true; // Available
+  });
     res.json({ available: true });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+
+
 
 
 app.listen(PORT, (req, res) => {
