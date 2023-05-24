@@ -14,11 +14,7 @@ app.use(express.json());
 app.get('/availability', async (req, res) => {
   const datetime = req.query.datetime;
   const resourceId = req.query.resourceId;
-
-  if (!moment(datetime, moment.ISO_8601, true).isValid()) {
-    res.status(400).json({ error: 'wrong format for param datetime' });
-    return;
-  }
+  
 
   if (resourceId != 1337) {
     res.status(404).json({ error: 'resource not found' });
