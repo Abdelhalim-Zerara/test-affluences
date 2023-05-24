@@ -11,7 +11,6 @@ app.use(express.json());
 
 
 
-
 app.get('/availability', async (req, res) => {
   const datetime = req.query.datetime;
   const resourceId = req.query.resourceId;
@@ -26,13 +25,7 @@ app.get('/availability', async (req, res) => {
     return;
   }
 
-  const today = moment().startOf('day');
   const requestedDatetime = moment(datetime);
-
-  if (!requestedDatetime.isSame(today, 'day')) {
-    res.json({ available: false });
-    return;
-  }
 
   try {
     const [reservationsResponse, timetablesResponse] = await Promise.all([
@@ -43,16 +36,13 @@ app.get('/availability', async (req, res) => {
     const reservations = reservationsResponse.data.reservations;
     const timetables = timetablesResponse.data.timetables;
 
-// Check availability logic
   const isAvailable = reservations.every((reservation) => {
   const reservationStart = moment(reservation.reservationStart);
   const reservationEnd = moment(reservation.reservationEnd);
-  // Check if the given datetime falls within any existing reservation
   if (requestedDatetime.isBetween(reservationStart, reservationEnd, null, '[]')) {
-    return false; // Not available
+    return false; 
   }
 
-  // Check if the given datetime falls within any opening hours
   const timetable = timetables.find((timetable) => {
     const opening = moment(timetable.opening);
     const closing = moment(timetable.closing);
@@ -71,9 +61,6 @@ app.get('/availability', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-
-
 
 
 app.listen(PORT, (req, res) => {
